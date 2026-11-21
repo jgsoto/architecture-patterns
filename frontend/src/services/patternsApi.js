@@ -4,9 +4,9 @@ export const ENDPOINTS = [
     { id: 'retry', path: '/retry', title: 'Retry Pattern', description: 'Reintentos automáticos ante fallos transitorios.' },
     { id: 'timeout', path: '/timeout', title: 'Timeout Pattern', description: 'Corte de ejecución por límite de tiempo (504).' },
     { id: 'hub-spoke', path: '/hub-spoke', title: 'Hub-and-Spoke', description: 'Orquestación centralizada de mensajes.' },
+    { id: 'lambda', path: '/lambda', title: 'AWS Lambda', description: 'Invocación serverless con parámetro name.', paramName: 'name', defaultParam: 'Mundo',},
 ];
 
-// Estado interno solo para el modo Mock
 let mockCbFailures = 0;
 let mockCbState = 'CLOSED';
 
@@ -15,12 +15,15 @@ export function resetMockCircuitBreaker() {
     mockCbState = 'CLOSED';
 }
 
-export async function callPatternEndpoint(baseUrl, path, isMock = false) {
+export async function callPatternEndpoint(baseUrl, path, isMock = false, params = {}) {
     const startTime = performance.now();
 
     if (!isMock) {
         const cleanBase = baseUrl.replace(/\/$/, '');
-        const response = await fetch(`${cleanBase}${path}`);
+        const query = new URLSearchParams(params).toString();
+        const url = `${cleanBase}${path}${query ? `?${query}` : ''}`;
+
+        const response = await fetch(url);
         const data = await response.json();
         const latency = Math.round(performance.now() - startTime);
 
@@ -102,6 +105,19 @@ export async function callPatternEndpoint(baseUrl, path, isMock = false) {
                     ],
                 },
             };
+
+        case '/lambda': {
+            const targetName = params.name?.trim() || 'Mundo';
+            return {
+                ok: true,
+                status: 200,
+                latency: latency + 120, // simula cold/warm start ligero
+                data: {
+                    function: 'AWS Lambda',
+                    result: `Hello, ${targetName}! (HelloLambda)`,
+                },
+            };
+        }
 
         default:
             throw new Error('Endpoint no soportado');

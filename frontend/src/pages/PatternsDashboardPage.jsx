@@ -12,10 +12,10 @@ export function PatternsDashboardPage() {
     const [loadingMap, setLoadingMap] = useState({});
     const [logs, setLogs] = useState([]);
 
-    const handleExecute = async (path) => {
+    const handleExecute = async (path, params = {}) => {
         setLoadingMap((prev) => ({ ...prev, [path]: true }));
         try {
-            const result = await callPatternEndpoint(baseUrl, path, isMock);
+            const result = await callPatternEndpoint(baseUrl, path, isMock, params);
             setResponses((prev) => ({ ...prev, [path]: result }));
             setLogs((prev) => [
                 { id: crypto.randomUUID(), time: new Date().toLocaleTimeString(), path, ...result },

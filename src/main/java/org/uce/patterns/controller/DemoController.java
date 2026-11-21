@@ -4,6 +4,7 @@ import org.uce.patterns.service.CircuitBreakerService;
 import org.uce.patterns.service.RetryService;
 import org.uce.patterns.service.TimeoutService;
 import org.uce.patterns.service.HubSpokeService;
+import org.uce.patterns.lambda.HelloLambda;
 
 import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
 
@@ -109,6 +110,23 @@ public class DemoController {
         return Map.of(
                 "architecture", "Hub-and-Spoke",
                 "messages", hubSpokeService.execute()
+        );
+    }
+
+    @GetMapping("/lambda")
+    public Map<String, String> lambda(
+            @RequestParam(defaultValue = "Mundo") String name) {
+
+        HelloLambda lambda = new HelloLambda();
+
+        String result = lambda.handleRequest(
+                Map.of("name", name),
+                null
+        );
+
+        return Map.of(
+                "function", "AWS Lambda",
+                "result", result
         );
     }
 }
